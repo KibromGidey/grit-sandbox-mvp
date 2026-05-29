@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GRIT/GIVT Sandbox MVP</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">Gamified • Individualized • Verified • Talent Sandbox</p>
+      <h1>GRIT/GIVT Sandbox MVP</h1>
+      <p class="subtitle">Paste a student resume and a job description to generate an AI-powered skill gap and job-readiness report.</p>
+    </section>
+
+    <section class="card grid">
+      <div>
+        <label for="resume">Student Resume / Profile</label>
+        <textarea id="resume" placeholder="Paste resume, skills, education, projects, or experience here..."></textarea>
+      </div>
+      <div>
+        <label for="jobDescription">Target Job Description</label>
+        <textarea id="jobDescription" placeholder="Paste job description or employer requirements here..."></textarea>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button id="analyzeBtn">Analyze Skill Gap</button>
+      <button id="demoBtn" class="secondary">Load Sample</button>
+    </section>
+
+    <section id="status" class="status hidden"></section>
+
+    <section class="card">
+      <h2>AI Career Readiness Report</h2>
+      <div id="report" class="report empty">Your report will appear here.</div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
