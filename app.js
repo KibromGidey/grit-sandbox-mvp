@@ -107,6 +107,8 @@ function login() {
   setCurrentUser({ name, email, role, createdAt: new Date().toISOString() });
   renderUser();
   renderHistory();
+  syncCloudReports();
+  syncCloudLeaderboard();
 }
 
 function logout() {
@@ -115,6 +117,8 @@ function logout() {
   resultsEl.innerHTML = '<p>Agent outputs will appear here.</p>';
   renderUser();
   renderHistory();
+  syncCloudReports();
+  syncCloudLeaderboard();
 }
 
 function renderUser() {
@@ -138,7 +142,7 @@ function renderUser() {
   const points = dashboards[user.role] || dashboards.student;
   dashboardContentEl.innerHTML = `
     <ul>${points.map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>
-    <p class="small"><strong>Note:</strong> This phase simulates login with browser storage. The next upgrade can replace it with Supabase/Auth0 while keeping the same role structure.</p>
+    <p class="small"><strong>Note:</strong> This phase simulates login with browser storage. Phase 6 can sync saved reports and verifications to Supabase. Authentication is still demo-only.</p>
   `;
 }
 
@@ -224,7 +228,8 @@ function saveCurrentReport() {
   saved.unshift(report);
   setSavedReports(saved.slice(0, 25));
   renderHistory();
-  statusEl.textContent = 'Report saved for the active demo user.';
+  statusEl.textContent = 'Report saved locally. Syncing to Supabase if configured...';
+  saveReportToCloud(report, resume, job, user);
 }
 
 function inferReportTitle(job) {
@@ -481,11 +486,12 @@ function submitVerification() {
   rep.tokens += reward;
   rep.verifications.unshift(verification);
   setCurrentReputation(rep);
+  saveVerificationToCloud(verification, user);
 
   skillNameEl.value = '';
   verificationCommentEl.value = '';
   renderReputation();
-  statusEl.textContent = `Verified ${skill}. +${reward} simulated OEF tokens awarded.`;
+  statusEl.textContent = `Verified ${skill}. +${reward} simulated OEF tokens awarded. Syncing to Supabase if configured...`;
 }
 
 function renderReputation() {
@@ -556,4 +562,82 @@ renderHistory = function () {
   renderReputation();
 };
 
+
+// ------------------------------
+// Phase 6: Supabase cloud sync through Netlify Functions
+// ------------------------------
+async function saveReportToCloud(report, resume, job, user) {
+  try {
+    const response = await fetch('/.netlify/functions/save-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report, resume, job, user })
+    });
+    const data = await response.json();
+    if (data.cloudSaved) {
+      statusEl.textContent = 'Report saved locally and synced to Supabase.';
+    } else {
+      statusEl.textContent = 'Report saved locally. Supabase sync is not active yet.';
+    }
+  } catch (error) {
+    statusEl.textContent = 'Report saved locally. Supabase sync failed.';
+    console.warn('Supabase report sync failed:', error);
+  }
+}
+
+async function saveVerificationToCloud(verification, user) {
+  try {
+    const response = await fetch('/.netlify/functions/save-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ verification, user })
+    });
+    const data = await response.json();
+    if (data.cloudSaved) {
+      statusEl.textContent = `Verified ${verification.skill}. +${verification.reward} OEF. Synced to Supabase.`;
+      syncCloudLeaderboard();
+    }
+  } catch (error) {
+    console.warn('Supabase verification sync failed:', error);
+  }
+}
+
+async function syncCloudReports() {
+  const user = getCurrentUser();
+  if (!user) return;
+  try {
+    const params = new URLSearchParams({ email: user.email, name: user.name, role: user.role });
+    const response = await fetch(`/.netlify/functions/get-reports?${params.toString()}`);
+    const data = await response.json();
+    if (Array.isArray(data.cloudReports) && data.cloudReports.length) {
+      const local = getSavedReports();
+      const byId = new Map([...data.cloudReports, ...local].map(report => [report.id, report]));
+      setSavedReports(Array.from(byId.values()).slice(0, 25));
+      renderHistory();
+    }
+  } catch (error) {
+    console.warn('Cloud report load failed:', error);
+  }
+}
+
+async function syncCloudLeaderboard() {
+  try {
+    const response = await fetch('/.netlify/functions/get-leaderboard');
+    const data = await response.json();
+    if (Array.isArray(data.cloudLeaderboard) && data.cloudLeaderboard.length) {
+      const cloudHtml = data.cloudLeaderboard.map((rep, index) => `
+        <div class="history-item">
+          <h3>#${index + 1} ${escapeHtml(rep.user.name || 'Demo User')} <span class="token-badge">${rep.tokens} OEF</span></h3>
+          <div class="history-meta">${escapeHtml(titleCase(rep.user.role || 'student'))} | Cloud verified skills: ${rep.count}</div>
+        </div>
+      `).join('');
+      leaderboardListEl.innerHTML = `<p class="small"><strong>Cloud leaderboard from Supabase</strong></p>${cloudHtml}`;
+    }
+  } catch (error) {
+    console.warn('Cloud leaderboard load failed:', error);
+  }
+}
+
 renderReputation();
+syncCloudReports();
+syncCloudLeaderboard();

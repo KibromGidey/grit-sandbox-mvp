@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GRIT Sandbox MVP - Phase 5</title>
+  <title>GRIT Sandbox MVP - Phase 6</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
     <h1>GRIT Sandbox</h1>
     <p>Gamified, Reputation, Individualized, Talent Sandbox</p>
-    <span class="phase-pill">Phase 5: Reputation + Verification</span>
+    <span class="phase-pill">Phase 6: Supabase Persistence</span>
   </header>
 
   <main class="layout">
@@ -90,7 +90,7 @@
 
     <section class="card reputation-card">
       <h2>Reputation & Skill Verification</h2>
-      <p class="small">This phase simulates GRIT reputation tokens before real Hedera integration.</p>
+      <p class="small">This phase stores reports and verifications in Supabase when environment variables are configured.</p>
 
       <div class="score-grid">
         <div class="score-box">
@@ -141,20 +141,20 @@
 
     <section class="card leaderboard-card">
       <h2>Demo Leaderboard</h2>
-      <p class="small">Ranks demo users by OEF token balance stored in this browser.</p>
+      <p class="small">Ranks users by OEF token balance. Phase 6 can sync verification data with Supabase.</p>
       <div id="leaderboardList" class="history-list"></div>
     </section>
 
     <section class="card history-card">
       <h2>Saved Reports</h2>
-      <p class="small">Reports are saved in this browser under the active demo user. This prepares the project for real database persistence later.</p>
+      <p class="small">Reports are saved locally and also sent to Supabase when your Netlify environment variables are configured.</p>
       <div id="historyList" class="history-list"></div>
       <button id="clearHistoryBtn" class="danger">Clear Saved Reports</button>
     </section>
   </main>
 
   <footer>
-    <p>Phase 5 prototype: reputation, verification, and simulated OEF tokens.</p>
+    <p>Phase 6 prototype: Supabase persistence for reports and verifications.</p>
   </footer>
 
   <script src="app.js"></script>
