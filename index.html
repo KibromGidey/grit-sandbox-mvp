@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GRIT Sandbox MVP - Phase 2</title>
+  <title>GRIT Sandbox MVP - Phase 3</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
     <h1>GRIT Sandbox</h1>
     <p>Gamified, Reputation, Individualized, Talent Sandbox</p>
+    <span class="phase-pill">Phase 3: Saved Reports</span>
   </header>
 
   <main class="layout">
@@ -20,7 +21,10 @@
       <h2>Target Job Description</h2>
       <textarea id="job" placeholder="Paste job description here..."></textarea>
 
-      <button id="runAllBtn">Run All Agents</button>
+      <div class="button-row">
+        <button id="runAllBtn">Run All Agents</button>
+        <button id="clearBtn" class="secondary">Clear Inputs</button>
+      </div>
       <p id="status"></p>
     </section>
 
@@ -35,14 +39,27 @@
         <button data-agent="discriminator">6. Discriminator</button>
         <button data-agent="reputation">7. Reputation</button>
       </div>
+
+      <div class="report-actions">
+        <button id="saveReportBtn" class="secondary">Save Current Report</button>
+        <button id="downloadReportBtn" class="secondary">Download Report</button>
+      </div>
+
       <div id="results" class="results">
         <p>Agent outputs will appear here.</p>
       </div>
     </section>
+
+    <section class="card history-card">
+      <h2>Saved Reports</h2>
+      <p class="small">Reports are saved in this browser using local storage. This is Phase 3A persistence before adding a real database.</p>
+      <div id="historyList" class="history-list"></div>
+      <button id="clearHistoryBtn" class="danger">Clear Saved Reports</button>
+    </section>
   </main>
 
   <footer>
-    <p>Phase 2 prototype: multi-agent workflow.</p>
+    <p>Phase 3 prototype: multi-agent workflow with browser-based saved reports.</p>
   </footer>
 
   <script src="app.js"></script>

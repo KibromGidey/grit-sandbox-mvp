@@ -12,13 +12,21 @@ header {
   text-align: center;
 }
 header h1 { margin: 0; font-size: 36px; }
-header p { margin: 8px 0 0; }
+header p { margin: 8px 0 14px; }
+.phase-pill {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  border: 1px solid rgba(255,255,255,0.35);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+}
 .layout {
-  max-width: 1200px;
+  max-width: 1250px;
   margin: 24px auto;
   padding: 0 16px;
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 0.95fr 1.25fr;
   gap: 20px;
 }
 .card {
@@ -27,6 +35,7 @@ header p { margin: 8px 0 0; }
   padding: 20px;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
 }
+.history-card { grid-column: 1 / -1; }
 h2 { margin-top: 0; }
 textarea {
   width: 100%;
@@ -48,13 +57,23 @@ button {
   cursor: pointer;
 }
 button:hover { background: #115e59; }
-#runAllBtn { width: 100%; font-size: 16px; }
+.secondary { background: #334155; }
+.secondary:hover { background: #1e293b; }
+.danger { background: #b91c1c; margin-top: 14px; }
+.danger:hover { background: #991b1b; }
+.button-row, .report-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+#runAllBtn { font-size: 16px; }
 .agent-buttons {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 18px;
 }
+.report-actions { margin-bottom: 14px; }
 .results {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -74,8 +93,22 @@ button:hover { background: #115e59; }
   margin-bottom: 8px;
 }
 #status { color: #2563eb; font-weight: 700; }
+.small { color: #64748b; font-size: 14px; }
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+.history-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  background: #f8fafc;
+}
+.history-item h3 { margin: 0 0 8px; color: #0f766e; }
+.history-meta { color: #64748b; font-size: 13px; margin-bottom: 10px; }
+.history-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
 footer { text-align: center; padding: 20px; color: #64748b; }
 @media (max-width: 850px) {
   .layout { grid-template-columns: 1fr; }
-  .agent-buttons { grid-template-columns: 1fr; }
+  .agent-buttons, .button-row, .report-actions { grid-template-columns: 1fr; }
 }
