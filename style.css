@@ -35,7 +35,7 @@ header h1 { margin: 0 0 8px; }
   padding: 20px;
   box-shadow: 0 8px 24px rgba(16, 42, 67, 0.08);
 }
-.agent-card, .history-card { grid-column: span 2; }
+.agent-card, .history-card, .reputation-card, .leaderboard-card { grid-column: span 2; }
 textarea {
   width: 100%;
   min-height: 170px;
@@ -134,4 +134,48 @@ footer {
 @media (max-width: 800px) {
   .layout { grid-template-columns: 1fr; }
   .agent-card, .history-card { grid-column: span 1; }
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+.score-box {
+  border: 1px solid #d9e2ec;
+  border-radius: 14px;
+  padding: 16px;
+  background: #f7fbff;
+}
+.score-label {
+  display: block;
+  color: #52606d;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+.score-box strong {
+  font-size: 2rem;
+  color: #102a43;
+}
+.verification-form {
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid #d9e2ec;
+  border-radius: 12px;
+  background: #fbfdff;
+}
+.small-textarea {
+  min-height: 90px;
+}
+.token-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #e6fffb;
+  color: #00796b;
+  font-weight: 700;
+}
+@media (max-width: 800px) {
+  .reputation-card, .leaderboard-card { grid-column: span 1; }
 }

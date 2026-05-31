@@ -378,3 +378,182 @@ historyListEl.addEventListener('click', event => {
 
 renderUser();
 renderHistory();
+
+// ------------------------------
+// Phase 5: Reputation + Verification
+// ------------------------------
+const REP_KEY = 'gritSandboxReputationByUser';
+const readinessScoreEl = document.getElementById('readinessScore');
+const verifiedSkillCountEl = document.getElementById('verifiedSkillCount');
+const oefBalanceEl = document.getElementById('oefBalance');
+const skillNameEl = document.getElementById('skillName');
+const verifierRoleEl = document.getElementById('verifierRole');
+const ratingEl = document.getElementById('rating');
+const verificationCommentEl = document.getElementById('verificationComment');
+const verifySkillBtn = document.getElementById('verifySkillBtn');
+const verificationLogEl = document.getElementById('verificationLog');
+const leaderboardListEl = document.getElementById('leaderboardList');
+
+const verifierWeights = {
+  professor: 120,
+  employer: 150,
+  advisor: 90,
+  peer: 60
+};
+
+function getReputationStore() {
+  try {
+    return JSON.parse(localStorage.getItem(REP_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function setReputationStore(store) {
+  localStorage.setItem(REP_KEY, JSON.stringify(store));
+}
+
+function getCurrentReputation() {
+  const store = getReputationStore();
+  const user = getCurrentUser();
+  const userId = getUserId();
+  if (!store[userId]) {
+    store[userId] = {
+      user: user || { name: 'Guest', email: 'guest', role: 'student' },
+      tokens: 0,
+      verifications: []
+    };
+    setReputationStore(store);
+  }
+  if (user) store[userId].user = user;
+  return store[userId];
+}
+
+function setCurrentReputation(rep) {
+  const store = getReputationStore();
+  store[getUserId()] = rep;
+  setReputationStore(store);
+}
+
+function calculateReadinessScore(rep) {
+  const verificationScore = Math.min(rep.verifications.length * 8, 40);
+  const tokenScore = Math.min(Math.floor(rep.tokens / 20), 40);
+  const reportScore = Math.min(getSavedReports().length * 5, 20);
+  return Math.min(100, verificationScore + tokenScore + reportScore);
+}
+
+function submitVerification() {
+  const user = getCurrentUser();
+  if (!user) {
+    alert('Start a demo user session before submitting verifications.');
+    return;
+  }
+
+  const skill = skillNameEl.value.trim();
+  const role = verifierRoleEl.value;
+  const rating = Number(ratingEl.value || 3);
+  const comment = verificationCommentEl.value.trim();
+
+  if (!skill) {
+    alert('Enter a skill name to verify.');
+    return;
+  }
+
+  const rep = getCurrentReputation();
+  const alreadyVerified = rep.verifications.some(v => v.skill.toLowerCase() === skill.toLowerCase());
+  if (alreadyVerified) {
+    alert('This skill is already verified for this demo user.');
+    return;
+  }
+
+  const baseReward = verifierWeights[role] || 60;
+  const reward = Math.round(baseReward * (rating / 5));
+  const verification = {
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+    skill,
+    role,
+    rating,
+    comment,
+    reward,
+    createdAt: new Date().toISOString()
+  };
+
+  rep.tokens += reward;
+  rep.verifications.unshift(verification);
+  setCurrentReputation(rep);
+
+  skillNameEl.value = '';
+  verificationCommentEl.value = '';
+  renderReputation();
+  statusEl.textContent = `Verified ${skill}. +${reward} simulated OEF tokens awarded.`;
+}
+
+function renderReputation() {
+  const user = getCurrentUser();
+  if (!user) {
+    readinessScoreEl.textContent = '0';
+    verifiedSkillCountEl.textContent = '0';
+    oefBalanceEl.textContent = '0';
+    verificationLogEl.innerHTML = '<p class="small">Start a demo session to track reputation.</p>';
+    renderLeaderboard();
+    return;
+  }
+
+  const rep = getCurrentReputation();
+  readinessScoreEl.textContent = calculateReadinessScore(rep);
+  verifiedSkillCountEl.textContent = rep.verifications.length;
+  oefBalanceEl.textContent = rep.tokens;
+
+  if (!rep.verifications.length) {
+    verificationLogEl.innerHTML = '<p class="small">No verified skills yet. Add a skill after reviewing the agent report.</p>';
+  } else {
+    verificationLogEl.innerHTML = rep.verifications.map(v => `
+      <div class="history-item">
+        <h3>${escapeHtml(v.skill)} <span class="token-badge">+${v.reward} OEF</span></h3>
+        <div class="history-meta">${titleCase(v.role)} verification | Rating: ${v.rating}/5 | ${new Date(v.createdAt).toLocaleString()}</div>
+        <p>${escapeHtml(v.comment || 'No comment provided.')}</p>
+      </div>
+    `).join('');
+  }
+
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const store = getReputationStore();
+  const rows = Object.values(store)
+    .filter(rep => rep && rep.user)
+    .sort((a, b) => b.tokens - a.tokens)
+    .slice(0, 10);
+
+  if (!rows.length) {
+    leaderboardListEl.innerHTML = '<p class="small">No leaderboard entries yet.</p>';
+    return;
+  }
+
+  leaderboardListEl.innerHTML = rows.map((rep, index) => `
+    <div class="history-item">
+      <h3>#${index + 1} ${escapeHtml(rep.user.name || 'Demo User')} <span class="token-badge">${rep.tokens} OEF</span></h3>
+      <div class="history-meta">${escapeHtml(titleCase(rep.user.role || 'student'))} | Verified skills: ${rep.verifications.length} | Readiness: ${calculateReadinessScore(rep)}/100</div>
+    </div>
+  `).join('');
+}
+
+if (verifySkillBtn) {
+  verifySkillBtn.addEventListener('click', submitVerification);
+}
+
+// Wrap earlier render calls with phase 5 rendering too.
+const originalRenderUserForPhase5 = renderUser;
+renderUser = function () {
+  originalRenderUserForPhase5();
+  renderReputation();
+};
+
+const originalRenderHistoryForPhase5 = renderHistory;
+renderHistory = function () {
+  originalRenderHistoryForPhase5();
+  renderReputation();
+};
+
+renderReputation();

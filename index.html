@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GRIT Sandbox MVP - Phase 4</title>
+  <title>GRIT Sandbox MVP - Phase 5</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
     <h1>GRIT Sandbox</h1>
     <p>Gamified, Reputation, Individualized, Talent Sandbox</p>
-    <span class="phase-pill">Phase 4: Demo Login + Roles</span>
+    <span class="phase-pill">Phase 5: Reputation + Verification</span>
   </header>
 
   <main class="layout">
@@ -88,6 +88,63 @@
       </div>
     </section>
 
+    <section class="card reputation-card">
+      <h2>Reputation & Skill Verification</h2>
+      <p class="small">This phase simulates GRIT reputation tokens before real Hedera integration.</p>
+
+      <div class="score-grid">
+        <div class="score-box">
+          <span class="score-label">Readiness Score</span>
+          <strong id="readinessScore">0</strong>
+        </div>
+        <div class="score-box">
+          <span class="score-label">Verified Skills</span>
+          <strong id="verifiedSkillCount">0</strong>
+        </div>
+        <div class="score-box">
+          <span class="score-label">OEF Tokens</span>
+          <strong id="oefBalance">0</strong>
+        </div>
+      </div>
+
+      <div class="verification-form">
+        <h3>Submit Skill Verification</h3>
+        <label for="skillName">Skill to verify</label>
+        <input id="skillName" type="text" placeholder="e.g., Python, SQL, Power BI" />
+
+        <label for="verifierRole">Verifier role</label>
+        <select id="verifierRole">
+          <option value="professor">Professor</option>
+          <option value="employer">Employer</option>
+          <option value="advisor">Advisor</option>
+          <option value="peer">Peer</option>
+        </select>
+
+        <label for="rating">Rating</label>
+        <select id="rating">
+          <option value="5">5 - Excellent</option>
+          <option value="4">4 - Good</option>
+          <option value="3">3 - Acceptable</option>
+          <option value="2">2 - Needs improvement</option>
+          <option value="1">1 - Weak evidence</option>
+        </select>
+
+        <label for="verificationComment">Verification comment</label>
+        <textarea id="verificationComment" class="small-textarea" placeholder="Brief evidence or comment..."></textarea>
+
+        <button id="verifySkillBtn">Submit Verification</button>
+      </div>
+
+      <h3>Verified Skill Log</h3>
+      <div id="verificationLog" class="history-list"></div>
+    </section>
+
+    <section class="card leaderboard-card">
+      <h2>Demo Leaderboard</h2>
+      <p class="small">Ranks demo users by OEF token balance stored in this browser.</p>
+      <div id="leaderboardList" class="history-list"></div>
+    </section>
+
     <section class="card history-card">
       <h2>Saved Reports</h2>
       <p class="small">Reports are saved in this browser under the active demo user. This prepares the project for real database persistence later.</p>
@@ -97,7 +154,7 @@
   </main>
 
   <footer>
-    <p>Phase 4 prototype: local demo authentication and role-based dashboards.</p>
+    <p>Phase 5 prototype: reputation, verification, and simulated OEF tokens.</p>
   </footer>
 
   <script src="app.js"></script>
