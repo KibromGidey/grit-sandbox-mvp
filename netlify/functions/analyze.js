@@ -9,8 +9,8 @@ exports.handler = async function (event) {
   try {
     const body = JSON.parse(event.body || "{}");
 
-    const resume = body.resume || "";
-    const jobDescription = body.jobDescription || "";
+    const resume = body.resume || body.profile || body.studentProfile || "";
+    const jobDescription = body.jobDescription || body.job || body.jd || "";
     const agent = body.agent || "translator";
 
     if (!resume.trim() || !jobDescription.trim()) {
