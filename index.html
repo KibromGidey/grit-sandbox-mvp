@@ -3,17 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GRIT Sandbox MVP - Phase 3</title>
+  <title>GRIT Sandbox MVP - Phase 4</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
     <h1>GRIT Sandbox</h1>
     <p>Gamified, Reputation, Individualized, Talent Sandbox</p>
-    <span class="phase-pill">Phase 3: Saved Reports</span>
+    <span class="phase-pill">Phase 4: Demo Login + Roles</span>
   </header>
 
   <main class="layout">
+    <section class="card profile-card">
+      <h2>User Session</h2>
+      <div id="loggedOutBox">
+        <label for="userName">Name</label>
+        <input id="userName" type="text" placeholder="e.g., Kibrom Gidey" />
+
+        <label for="userEmail">Email</label>
+        <input id="userEmail" type="email" placeholder="e.g., kibrom@example.com" />
+
+        <label for="userRole">Role</label>
+        <select id="userRole">
+          <option value="student">Student</option>
+          <option value="advisor">Advisor</option>
+          <option value="verifier">Verifier</option>
+          <option value="admin">Admin</option>
+        </select>
+
+        <button id="loginBtn">Start Demo Session</button>
+      </div>
+
+      <div id="loggedInBox" class="hidden">
+        <div class="profile-summary">
+          <div class="avatar" id="avatar">U</div>
+          <div>
+            <h3 id="profileName">User</h3>
+            <p id="profileEmail" class="small"></p>
+            <p><span id="profileRole" class="role-pill">Student</span></p>
+          </div>
+        </div>
+        <button id="logoutBtn" class="secondary">Sign Out Demo Session</button>
+      </div>
+    </section>
+
+    <section class="card dashboard-card">
+      <h2 id="dashboardTitle">Student Dashboard</h2>
+      <div id="dashboardContent" class="dashboard-content"></div>
+    </section>
+
     <section class="card input-card">
       <h2>Student Profile / Resume</h2>
       <textarea id="resume" placeholder="Paste resume or student profile here..."></textarea>
@@ -52,14 +90,14 @@
 
     <section class="card history-card">
       <h2>Saved Reports</h2>
-      <p class="small">Reports are saved in this browser using local storage. This is Phase 3A persistence before adding a real database.</p>
+      <p class="small">Reports are saved in this browser under the active demo user. This prepares the project for real database persistence later.</p>
       <div id="historyList" class="history-list"></div>
       <button id="clearHistoryBtn" class="danger">Clear Saved Reports</button>
     </section>
   </main>
 
   <footer>
-    <p>Phase 3 prototype: multi-agent workflow with browser-based saved reports.</p>
+    <p>Phase 4 prototype: local demo authentication and role-based dashboards.</p>
   </footer>
 
   <script src="app.js"></script>

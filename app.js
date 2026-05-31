@@ -9,7 +9,22 @@ const downloadReportBtn = document.getElementById('downloadReportBtn');
 const historyListEl = document.getElementById('historyList');
 const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 
-const STORAGE_KEY = 'gritSandboxSavedReports';
+const userNameEl = document.getElementById('userName');
+const userEmailEl = document.getElementById('userEmail');
+const userRoleEl = document.getElementById('userRole');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const loggedOutBox = document.getElementById('loggedOutBox');
+const loggedInBox = document.getElementById('loggedInBox');
+const profileNameEl = document.getElementById('profileName');
+const profileEmailEl = document.getElementById('profileEmail');
+const profileRoleEl = document.getElementById('profileRole');
+const avatarEl = document.getElementById('avatar');
+const dashboardTitleEl = document.getElementById('dashboardTitle');
+const dashboardContentEl = document.getElementById('dashboardContent');
+
+const USER_KEY = 'gritSandboxDemoUser';
+const REPORTS_KEY = 'gritSandboxSavedReportsByUser';
 let currentReport = [];
 
 const agentLabels = {
@@ -22,6 +37,115 @@ const agentLabels = {
   reputation: 'Reputation Agent'
 };
 
+const dashboards = {
+  student: [
+    'Run all 7 agents using your resume and target job description.',
+    'Save your multi-agent report after the workflow completes.',
+    'Use the recommendations to build portfolio projects and close skill gaps.'
+  ],
+  advisor: [
+    'Review student readiness reports and learning path recommendations.',
+    'Use the Advising Agent output to guide mentoring conversations.',
+    'Suggest courses, certifications, and projects based on gaps.'
+  ],
+  verifier: [
+    'Review evidence of student skills from reports and projects.',
+    'Identify skills that are ready for verification.',
+    'Prepare feedback that can later become reputation evidence.'
+  ],
+  admin: [
+    'Monitor demo usage and saved report flow.',
+    'Prepare next implementation step: Supabase/Auth0 real accounts.',
+    'Review which features are ready for professor demonstration.'
+  ]
+};
+
+function getCurrentUser() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function setCurrentUser(user) {
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+function getUserId() {
+  const user = getCurrentUser();
+  return user ? user.email.toLowerCase() : 'guest';
+}
+
+function getSavedReportsStore() {
+  try {
+    return JSON.parse(localStorage.getItem(REPORTS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function setSavedReportsStore(store) {
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(store));
+}
+
+function getSavedReports() {
+  const store = getSavedReportsStore();
+  return store[getUserId()] || [];
+}
+
+function setSavedReports(reports) {
+  const store = getSavedReportsStore();
+  store[getUserId()] = reports;
+  setSavedReportsStore(store);
+}
+
+function login() {
+  const name = userNameEl.value.trim() || 'Demo User';
+  const email = userEmailEl.value.trim() || `${Date.now()}@demo.local`;
+  const role = userRoleEl.value;
+  setCurrentUser({ name, email, role, createdAt: new Date().toISOString() });
+  renderUser();
+  renderHistory();
+}
+
+function logout() {
+  localStorage.removeItem(USER_KEY);
+  currentReport = [];
+  resultsEl.innerHTML = '<p>Agent outputs will appear here.</p>';
+  renderUser();
+  renderHistory();
+}
+
+function renderUser() {
+  const user = getCurrentUser();
+  if (!user) {
+    loggedOutBox.classList.remove('hidden');
+    loggedInBox.classList.add('hidden');
+    dashboardTitleEl.textContent = 'Demo Dashboard';
+    dashboardContentEl.innerHTML = '<p class="small">Start a demo session to see role-based guidance. This is not real authentication yet; it is a Phase 4 placeholder before Supabase/Auth0.</p>';
+    return;
+  }
+
+  loggedOutBox.classList.add('hidden');
+  loggedInBox.classList.remove('hidden');
+  profileNameEl.textContent = user.name;
+  profileEmailEl.textContent = user.email;
+  profileRoleEl.textContent = titleCase(user.role);
+  avatarEl.textContent = user.name.charAt(0).toUpperCase();
+  dashboardTitleEl.textContent = `${titleCase(user.role)} Dashboard`;
+
+  const points = dashboards[user.role] || dashboards.student;
+  dashboardContentEl.innerHTML = `
+    <ul>${points.map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>
+    <p class="small"><strong>Note:</strong> This phase simulates login with browser storage. The next upgrade can replace it with Supabase/Auth0 while keeping the same role structure.</p>
+  `;
+}
+
+function titleCase(text) {
+  return String(text).charAt(0).toUpperCase() + String(text).slice(1);
+}
+
 async function runAgent(agent) {
   const resume = resumeEl.value.trim();
   const job = jobEl.value.trim();
@@ -33,10 +157,11 @@ async function runAgent(agent) {
 
   statusEl.textContent = `Running ${agentLabels[agent]}...`;
 
+  const user = getCurrentUser();
   const response = await fetch('/.netlify/functions/analyze', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ resume, job, jobDescription: job, agent })
+    body: JSON.stringify({ resume, job, jobDescription: job, agent, user })
   });
 
   const data = await response.json();
@@ -70,21 +195,15 @@ function escapeHtml(text) {
     .replaceAll('\n', '<br>');
 }
 
-function getSavedReports() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch {
-    return [];
-  }
-}
-
-function setSavedReports(reports) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
-}
-
 function saveCurrentReport() {
   const resume = resumeEl.value.trim();
   const job = jobEl.value.trim();
+  const user = getCurrentUser();
+
+  if (!user) {
+    alert('Start a demo user session before saving a report.');
+    return;
+  }
 
   if (!currentReport.length) {
     alert('Run at least one agent before saving a report.');
@@ -95,6 +214,7 @@ function saveCurrentReport() {
   const report = {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
     createdAt: new Date().toISOString(),
+    owner: user,
     title: inferReportTitle(job),
     resumePreview: resume.slice(0, 160),
     jobPreview: job.slice(0, 160),
@@ -104,7 +224,7 @@ function saveCurrentReport() {
   saved.unshift(report);
   setSavedReports(saved.slice(0, 25));
   renderHistory();
-  statusEl.textContent = 'Report saved in this browser.';
+  statusEl.textContent = 'Report saved for the active demo user.';
 }
 
 function inferReportTitle(job) {
@@ -116,10 +236,13 @@ function buildReportText(report = null) {
   const outputs = report ? report.outputs : currentReport;
   const title = report ? report.title : inferReportTitle(jobEl.value.trim());
   const createdAt = report ? report.createdAt : new Date().toISOString();
+  const user = report?.owner || getCurrentUser();
 
   let text = `GRIT Sandbox Multi-Agent Report\n`;
   text += `Title: ${title}\n`;
-  text += `Generated: ${new Date(createdAt).toLocaleString()}\n\n`;
+  text += `Generated: ${new Date(createdAt).toLocaleString()}\n`;
+  if (user) text += `User: ${user.name} (${user.role}) - ${user.email}\n`;
+  text += `\n`;
 
   outputs.forEach(item => {
     text += `==============================\n${item.title}\n==============================\n${item.text}\n\n`;
@@ -150,10 +273,16 @@ function downloadCurrentReport() {
 
 function renderHistory() {
   const saved = getSavedReports();
+  const user = getCurrentUser();
   historyListEl.innerHTML = '';
 
+  if (!user) {
+    historyListEl.innerHTML = '<p class="small">Start a demo session to save and view reports for a user.</p>';
+    return;
+  }
+
   if (!saved.length) {
-    historyListEl.innerHTML = '<p class="small">No saved reports yet.</p>';
+    historyListEl.innerHTML = '<p class="small">No saved reports yet for this demo user.</p>';
     return;
   }
 
@@ -163,6 +292,7 @@ function renderHistory() {
     item.innerHTML = `
       <h3>${escapeHtml(report.title)}</h3>
       <div class="history-meta">Saved: ${new Date(report.createdAt).toLocaleString()} | Outputs: ${report.outputs.length}</div>
+      <p><strong>Owner:</strong> ${escapeHtml(report.owner?.name || 'Unknown')} (${escapeHtml(report.owner?.role || 'user')})</p>
       <p><strong>Job preview:</strong> ${escapeHtml(report.jobPreview || '')}</p>
       <div class="history-buttons">
         <button class="secondary" data-load="${report.id}">Load Report</button>
@@ -221,11 +351,13 @@ clearBtn.addEventListener('click', () => {
   statusEl.textContent = 'Inputs cleared.';
 });
 
+loginBtn.addEventListener('click', login);
+logoutBtn.addEventListener('click', logout);
 saveReportBtn.addEventListener('click', saveCurrentReport);
 downloadReportBtn.addEventListener('click', downloadCurrentReport);
 clearHistoryBtn.addEventListener('click', () => {
-  if (confirm('Clear all saved reports from this browser?')) {
-    localStorage.removeItem(STORAGE_KEY);
+  if (confirm('Clear all saved reports for this demo user?')) {
+    setSavedReports([]);
     renderHistory();
   }
 });
@@ -244,4 +376,5 @@ historyListEl.addEventListener('click', event => {
   if (deleteId) deleteReport(deleteId);
 });
 
+renderUser();
 renderHistory();
