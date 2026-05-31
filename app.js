@@ -1,55 +1,87 @@
 const resumeEl = document.getElementById('resume');
-const jobEl = document.getElementById('jobDescription');
-const analyzeBtn = document.getElementById('analyzeBtn');
-const demoBtn = document.getElementById('demoBtn');
+const jobEl = document.getElementById('job');
+const resultsEl = document.getElementById('results');
 const statusEl = document.getElementById('status');
-const reportEl = document.getElementById('report');
+const runAllBtn = document.getElementById('runAllBtn');
 
-function setStatus(message, show = true) {
-  statusEl.textContent = message;
-  statusEl.classList.toggle('hidden', !show);
-}
+const agentLabels = {
+  translator: 'Translator Agent',
+  talent: 'Talent Agent',
+  curriculum: 'Curriculum Agent',
+  advising: 'Advising Agent',
+  generator: 'GAN Generator Agent',
+  discriminator: 'GAN Discriminator Agent',
+  reputation: 'Reputation Agent'
+};
 
-function setReport(text) {
-  reportEl.textContent = text;
-  reportEl.classList.remove('empty');
-}
-
-analyzeBtn.addEventListener('click', async () => {
+async function runAgent(agent) {
   const resume = resumeEl.value.trim();
-  const jobDescription = jobEl.value.trim();
+  const job = jobEl.value.trim();
 
-  if (!resume || !jobDescription) {
-    setStatus('Please paste both a resume/profile and a job description.');
+  if (!resume || !job) {
+    alert('Please paste both a resume/profile and a job description.');
     return;
   }
 
-  analyzeBtn.disabled = true;
-  setStatus('Analyzing skill gap...');
-  setReport('Working...');
+  statusEl.textContent = `Running ${agentLabels[agent]}...`;
 
-  try {
-    const response = await fetch('/.netlify/functions/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resume, jobDescription })
-    });
+  const response = await fetch('/.netlify/functions/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ resume, job, agent })
+  });
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Analysis failed.');
+  const data = await response.json();
 
-    setStatus('Analysis complete.');
-    setReport(data.report);
-  } catch (error) {
-    setStatus('Using demo fallback because the AI service is not configured or failed.');
-    setReport(`DEMO REPORT\n\n1. Current Skills\n- Communication\n- Basic technical knowledge\n- Academic project experience\n\n2. Missing Skills\n- Tools and technologies named in the job description\n- Evidence of applied experience\n- Stronger achievement-based resume language\n\n3. Job Readiness Score\n65/100\n\n4. Recommended Learning Path\n- Complete one project aligned with the target job\n- Add measurable outcomes to resume bullets\n- Build a portfolio section\n\n5. Resume Improvement\nRewrite duties as achievements and include tools, results, and impact.\n\nTechnical note: ${error.message}`);
-  } finally {
-    analyzeBtn.disabled = false;
+  if (!response.ok) {
+    throw new Error(data.error || 'Something went wrong.');
   }
+
+  addResult(agentLabels[agent], data.result);
+  statusEl.textContent = `${agentLabels[agent]} finished.`;
+}
+
+function addResult(title, text) {
+  if (resultsEl.textContent.includes('Agent outputs will appear here')) {
+    resultsEl.innerHTML = '';
+  }
+  const div = document.createElement('div');
+  div.className = 'agent-output';
+  div.innerHTML = `<h3>${title}</h3><div>${escapeHtml(text)}</div>`;
+  resultsEl.appendChild(div);
+}
+
+function escapeHtml(text) {
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;')
+    .replaceAll('\n', '<br>');
+}
+
+document.querySelectorAll('[data-agent]').forEach(button => {
+  button.addEventListener('click', async () => {
+    try {
+      await runAgent(button.dataset.agent);
+    } catch (err) {
+      statusEl.textContent = 'Error.';
+      alert(err.message);
+    }
+  });
 });
 
-demoBtn.addEventListener('click', () => {
-  resumeEl.value = `BSc student with experience in information systems, database design, academic research, teamwork, and basic Python. Completed a class project on student record management. Interested in AI and digital transformation.`;
-  jobEl.value = `Junior AI/Information Systems Analyst. Requirements: Python, SQL, data analysis, dashboard development, problem solving, communication, documentation, and experience with machine learning concepts.`;
-  setStatus('Sample loaded. Click Analyze Skill Gap.');
+runAllBtn.addEventListener('click', async () => {
+  resultsEl.innerHTML = '';
+  const agents = ['translator', 'talent', 'curriculum', 'advising', 'generator', 'discriminator', 'reputation'];
+  for (const agent of agents) {
+    try {
+      await runAgent(agent);
+    } catch (err) {
+      addResult(agentLabels[agent], `ERROR: ${err.message}`);
+      break;
+    }
+  }
+  statusEl.textContent = 'Multi-agent workflow complete.';
 });

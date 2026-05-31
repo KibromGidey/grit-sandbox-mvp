@@ -3,40 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GRIT/GIVT Sandbox MVP</title>
+  <title>GRIT Sandbox MVP - Phase 2</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="container">
-    <section class="hero">
-      <p class="eyebrow">Gamified • Individualized • Verified • Talent Sandbox</p>
-      <h1>GRIT/GIVT Sandbox MVP</h1>
-      <p class="subtitle">Paste a student resume and a job description to generate an AI-powered skill gap and job-readiness report.</p>
+  <header>
+    <h1>GRIT Sandbox</h1>
+    <p>Gamified, Reputation, Individualized, Talent Sandbox</p>
+  </header>
+
+  <main class="layout">
+    <section class="card input-card">
+      <h2>Student Profile / Resume</h2>
+      <textarea id="resume" placeholder="Paste resume or student profile here..."></textarea>
+
+      <h2>Target Job Description</h2>
+      <textarea id="job" placeholder="Paste job description here..."></textarea>
+
+      <button id="runAllBtn">Run All Agents</button>
+      <p id="status"></p>
     </section>
 
-    <section class="card grid">
-      <div>
-        <label for="resume">Student Resume / Profile</label>
-        <textarea id="resume" placeholder="Paste resume, skills, education, projects, or experience here..."></textarea>
+    <section class="card agent-card">
+      <h2>AI Agents</h2>
+      <div class="agent-buttons">
+        <button data-agent="translator">1. Translator</button>
+        <button data-agent="talent">2. Talent</button>
+        <button data-agent="curriculum">3. Curriculum</button>
+        <button data-agent="advising">4. Advising</button>
+        <button data-agent="generator">5. Generator</button>
+        <button data-agent="discriminator">6. Discriminator</button>
+        <button data-agent="reputation">7. Reputation</button>
       </div>
-      <div>
-        <label for="jobDescription">Target Job Description</label>
-        <textarea id="jobDescription" placeholder="Paste job description or employer requirements here..."></textarea>
+      <div id="results" class="results">
+        <p>Agent outputs will appear here.</p>
       </div>
-    </section>
-
-    <section class="actions">
-      <button id="analyzeBtn">Analyze Skill Gap</button>
-      <button id="demoBtn" class="secondary">Load Sample</button>
-    </section>
-
-    <section id="status" class="status hidden"></section>
-
-    <section class="card">
-      <h2>AI Career Readiness Report</h2>
-      <div id="report" class="report empty">Your report will appear here.</div>
     </section>
   </main>
+
+  <footer>
+    <p>Phase 2 prototype: multi-agent workflow.</p>
+  </footer>
 
   <script src="app.js"></script>
 </body>
